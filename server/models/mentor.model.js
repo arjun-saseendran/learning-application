@@ -39,4 +39,4 @@ const mentorSchema = new Schema(
   { timestamps: true }
 );
 
-export const Mentor = model('Mentor', mentorSchema)
+export const Mentor = model("Mentor", mentorSchema);
