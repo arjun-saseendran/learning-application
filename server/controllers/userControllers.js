@@ -1,4 +1,5 @@
 import { User } from "../models/userModel.js";
+import { passwordHandler } from "../utils/passwordHandler.js";
 
 // User signup
 const userSignup = async(req, res) => {
@@ -16,11 +17,18 @@ const userSignup = async(req, res) => {
         return res.status(400).json({error: 'User already exists'})
       }
 
+      // Hash password
+      const hashedPassword = await passwordHandler(password)
+
       // Create new user object
-      const newUser = new User()
+      const newUser = new User({name, email, mobile, password: hashedPassword})
 
       // Save data to database
       newUser.save()
+
+      // Create token
+      
+
       res.status(200).json({message: 'User created successfully'})
   } catch (error) {
     res.status(error.status || 500).json({error: error.message || 'Internal server error'})
