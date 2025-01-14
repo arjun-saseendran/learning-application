@@ -9,13 +9,13 @@ export const userSignup = async (req, res) => {
 
     // Check each field not empty
     if (!name || !email || !mobile || !password) {
-      return res.status(400).json({ error: "All fields required" });
+      return res.status(400).json({ message: "All fields required" });
     }
 
     // Check user already exists
     const existUser = await User.fineOne({ email });
     if (existUser) {
-      return res.status(400).json({ error: "User already exists" });
+      return res.status(400).json({ message: "User already exists" });
     }
 
     // Hash password

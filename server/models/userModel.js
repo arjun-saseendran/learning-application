@@ -1,8 +1,10 @@
 import { Schema, model } from "mongoose";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const userSchema = new Schema(
   {
-    name: {
+    username: {
       type: String,
       required: true,
       maxLength: 30,
@@ -13,6 +15,7 @@ const userSchema = new Schema(
       miniLength: 3,
       maxLength: 30,
     },
+
     password: {
       type: String,
       required: true,
@@ -24,7 +27,15 @@ const userSchema = new Schema(
     },
     isActive: {
       type: Boolean,
-      default: true
+      default: true,
+    },
+    resetToken: {
+      type: String,
+      default: null,
+    },
+    resetTokenExpires: {
+      type: String,
+      default: null,
     },
     profilePic: {
       type: String,
@@ -34,5 +45,27 @@ const userSchema = new Schema(
   },
   { timestamps: true }
 );
+
+// Encrypt password
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  this.password = bcrypt.hash(this.password, 10);
+});
+
+// Validate password
+userSchema.methods.isPasswordCorrect = async function (password) {
+  return await bcrypt.compare(password, this.password);
+};
+
+userSchema.methods.generateToken = function () {
+  // Short lived token
+  return jwt.sign(
+    {
+      _id: this._id,
+      role: "user",
+    },
+    process.env.JWT_SECRET
+  );
+};
 
 export const User = model("User", userSchema);
