@@ -1,4 +1,6 @@
 import { User } from "../models/userModel.js";
+import {cloudinaryInstance} from '../config/cloudinary.js'
+
 
 // User signup
 export const userSignup = async (req, res) => {
@@ -35,8 +37,12 @@ export const userSignup = async (req, res) => {
       return res.status(400).json({message: 'Profile picture required!'})
     }
 
+    // Upload profile picture to cloudinary
+    const uploadResult = await cloudinaryInstance.uploader.upload(req.file.path)
+
     // Create new user object
-    const newUser = new User({ name, email, mobile, password});
+    const newUser = new User({ name, email, mobile, profilePic: uploadResult.url, password});
+
 
     // Save data to database
     newUser.save();

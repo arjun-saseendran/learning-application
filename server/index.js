@@ -14,7 +14,7 @@ const port = process.env.PORT;
 // Connect database
   connectDB();
 
-// Cofigure server
+// Configure server
 app.listen(port, () => {
 
 
