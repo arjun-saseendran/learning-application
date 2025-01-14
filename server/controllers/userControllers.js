@@ -1,28 +1,42 @@
 import { User } from "../models/userModel.js";
-import { passwordHandler } from "../utils/passwordHandler.js";
 
 // User signup
 export const userSignup = async (req, res) => {
   try {
     // Destructing data from request.body
-    const { name, email, mobile, password } = req.body;
+    const { name, email, mobile, password, confirmPassword } = req.body;
 
     // Check each field not empty
-    if (!name || !email || !mobile || !password) {
+    if (!name || !email || !mobile || !password || !confirmPassword) {
       return res.status(400).json({ message: "All fields required" });
+    }
+
+    // Check password and confirm password
+    if(password !== confirmPassword){
+      return res.status(400).json({message: 'Password and Confirm Password not match!'})
     }
 
     // Check user already exists
     const existUser = await User.fineOne({ email });
     if (existUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: "User already exist" });
     }
 
-    // Hash password
-    const hashedPassword = await passwordHandler(password);
+    // Check mobile number already exist
+    const existMobileNumber = await User.findOne({mobile})
+
+    // Handle mobile number already exist
+    if(existMobileNumber){
+      return res.status(400).json({message: 'Mobile number already exist!'})
+    }
+
+    // Handle profile picture not found
+    if(!req.file || !req.file.path){
+      return res.status(400).json({message: 'Profile picture required!'})
+    }
 
     // Create new user object
-    const newUser = new User({ name, email, mobile, password: hashedPassword });
+    const newUser = new User({ name, email, mobile, password});
 
     // Save data to database
     newUser.save();
