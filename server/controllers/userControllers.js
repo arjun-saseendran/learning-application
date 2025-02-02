@@ -1,5 +1,6 @@
 import { User } from "../models/userModel.js";
 import { cloudinaryInstance } from "../config/cloudinary.js";
+import { catchErrorHandler } from "../utils/catchErrorHandler.js";
 
 // User signup
 export const userSignup = async (req, res) => {
@@ -95,19 +96,19 @@ export const userLogin = async (req, res) => {
     if (!validPassword) {
       return res.status(401).json({ message: "Invalid credentials!" });
     }
-    
+
     // Generate token
     const token = generateToken(user, "user", res);
-    
+
     // Exclude password
     const { password: _, ...userWithoutPassword } = user.toObject();
-    
+
     // Send response to frontend
-    res.status(200).json({message: 'Login successful!', date: userWithoutPassword, token})
-    
+    res
+      .status(200)
+      .json({ message: "Login successful!", date: userWithoutPassword, token });
   } catch (error) {
     // Handle catch error
-    catch
-    
+    catchErrorHandler(res, error);
   }
 };
