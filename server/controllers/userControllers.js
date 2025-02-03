@@ -112,3 +112,22 @@ export const userLogin = async (req, res) => {
     catchErrorHandler(res, error);
   }
 };
+
+// User profile
+export const userProfile = async (req, res) => {
+  try {
+    // Get user id
+    const userId = req.user.id;
+
+    // Fine user profile
+    const profile = await User.findOne(userId).select("-password");
+
+    // Send response to frontend
+    res
+      .status(200)
+      .json({ message: "User profile fetched succfully!", data: profile });
+  } catch (error) {
+    // Handle catch error
+    catchErrorHandler(res, error);
+  }
+};
