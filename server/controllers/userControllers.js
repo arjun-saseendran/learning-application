@@ -131,3 +131,48 @@ export const userProfile = async (req, res) => {
     catchErrorHandler(res, error);
   }
 };
+
+// Update user profile
+export const updateUserProfile = async (req, res) => {
+  try {
+    // Get data from reqest body
+    const { name, email, mobile } = req.body;
+
+    // Validate field
+    if (!name || !email || !mobile) {
+      return res.status(400).json({ message: "All fields are required!" });
+    }
+    // Get user id
+    const userId = req.user.id;
+    // Set image null
+    let profilePictureUrl = null;
+    // Save profile picture to cloudinary
+    if (req.file) {
+      const uploadResult = await cloudinaryInsatance.uploader.upload(
+        req.file.path,
+      );
+      profilePictureUrl = uploadResult.url;
+    }
+
+    // Update user data
+    const updatedUserData = await User.findByIdAndUpdate(
+      userId,
+      {
+        name,
+        email,
+        mobile,
+        profilePicture: profilePictureUrl || undefined,
+      },
+      { new: true },
+    );
+    // Send response to frontend
+    res
+      .status(200)
+      .json({
+        message: "Profile details updated successfully!",
+        data: updatedUserData,
+      });
+  } catch (error) {
+    errorCatchHandler(res, error);
+  }
+};
