@@ -1,15 +1,16 @@
 import { User } from "../models/userModel.js";
 import { cloudinaryInstance } from "../config/cloudinary.js";
 import { catchErrorHandler } from "../utils/catchErrorHandler.js";
+import {generateToken} from '../utils/tokenHandler.js'
 
 // User signup
 export const userSignup = async (req, res) => {
   try {
     // Destructing data from request.body
-    const { name, email, mobile, password, confirmPassword } = req.body;
+    const { username, email, mobile, password, confirmPassword } = req.body;
 
     // Check each field not empty
-    if (!name || !email || !mobile || !password || !confirmPassword) {
+    if (!username || !email || !mobile || !password || !confirmPassword) {
       return res.status(400).json({ message: "All fields required" });
     }
 
@@ -21,7 +22,7 @@ export const userSignup = async (req, res) => {
     }
 
     // Check user already exists
-    const existUser = await User.fineOne({ email });
+    const existUser = await User.findOne({ email });
     if (existUser) {
       return res.status(400).json({ message: "User already exist" });
     }
@@ -46,7 +47,7 @@ export const userSignup = async (req, res) => {
 
     // Create new user object
     const newUser = new User({
-      name,
+      username,
       email,
       mobile,
       profilePic: uploadResult.url,
@@ -99,6 +100,8 @@ export const userLogin = async (req, res) => {
 
     // Generate token
     const token = generateToken(user, "user", res);
+    
+    res.cookie('token', token); // Set token to cookies.
 
     // Exclude password
     const { password: _, ...userWithoutPassword } = user.toObject();
@@ -106,7 +109,7 @@ export const userLogin = async (req, res) => {
     // Send response to frontend
     res
       .status(200)
-      .json({ message: "Login successful!", date: userWithoutPassword, token });
+      .json({ message: "Login successful!", date: userWithoutPassword });
   } catch (error) {
     // Handle catch error
     catchErrorHandler(res, error);
@@ -118,9 +121,11 @@ export const userProfile = async (req, res) => {
   try {
     // Get user id
     const userId = req.user.id;
+    
+    if (!userId) return res.status(401).json({ message: 'User not found!' }); // Handle user not found.
 
     // Fine user profile
-    const profile = await User.findOne(userId).select("-password");
+    const profile = await User.findById(userId).select("-password");
 
     // Send response to frontend
     res
@@ -136,10 +141,10 @@ export const userProfile = async (req, res) => {
 export const updateUserProfile = async (req, res) => {
   try {
     // Get data from reqest body
-    const { name, email, mobile } = req.body;
+    const { username, email, mobile } = req.body;
 
     // Validate field
-    if (!name || !email || !mobile) {
+    if (!username || !email || !mobile) {
       return res.status(400).json({ message: "All fields are required!" });
     }
     // Get user id
@@ -148,7 +153,7 @@ export const updateUserProfile = async (req, res) => {
     let profilePictureUrl = null;
     // Save profile picture to cloudinary
     if (req.file) {
-      const uploadResult = await cloudinaryInsatance.uploader.upload(
+      const uploadResult = await cloudinaryInstance.uploader.upload(
         req.file.path,
       );
       profilePictureUrl = uploadResult.url;
@@ -158,7 +163,7 @@ export const updateUserProfile = async (req, res) => {
     const updatedUserData = await User.findByIdAndUpdate(
       userId,
       {
-        name,
+        username,
         email,
         mobile,
         profilePicture: profilePictureUrl || undefined,
@@ -173,13 +178,13 @@ export const updateUserProfile = async (req, res) => {
         data: updatedUserData,
       });
   } catch (error) {
-    errorCatchHandler(res, error);
+    catchErrorHandler(res, error);
   }
 };
 
 export const checkUser = async(req, res) => {
   try{
-  res.status(200).json({ message: 'Authorized user' });
+  res.status(200).json({ message: 'Authorized user' }); 
     
   }catch(error){
     catchErrorHandler(res, error);
