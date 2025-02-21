@@ -176,3 +176,13 @@ export const updateUserProfile = async (req, res) => {
     errorCatchHandler(res, error);
   }
 };
+
+export const checkUser = async(req, res) => {
+  try{
+  res.status(200).json({ message: 'Authorized user' });
+    
+  }catch(error){
+    catchErrorHandler(res, error);
+  }
+  
+}
